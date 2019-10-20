@@ -42,8 +42,8 @@ data = {
     "requestedCurrencyCode": "GBP"
 }
 
-starting_date = datetime(year=2019, month=12, day=1, hour=0, minute=0)
-ending_date = datetime(year=2019, month=12, day=20, hour=0, minute=0)
+starting_date = datetime(year=2019, month=12, day=12, hour=0, minute=0)
+ending_date = datetime(year=2019, month=12, day=15, hour=0, minute=0)
 journeys_set = set()
 
 while (starting_date < ending_date):
@@ -57,25 +57,28 @@ while (starting_date < ending_date):
     else:
         response_json = response.json()["data"]["journeySearch"]
         journeys = response_json['journeys']
-        print("Found", len(journeys), "journeys")
+        # print("Found", len(journeys), "journeys")
 
         last_journey = None
         for id, journey in journeys.items():
             depart_at = dp.isoparse(journey["departAt"])
             if depart_at.day > starting_date.day:
                 # Next day
-                cheapest_journey = min(journeys_set,key=itemgetter(1))
-                print("--> {DAY} -- found {NO} journeys -- cheapest {DATE} - {PRICE}".format(
-                    DAY=starting_date.strftime("%d/%m/%Y"),
-                    NO=len(journeys_set),
-                    DATE=cheapest_journey[0],
-                    PRICE=cheapest_journey[1],
-                ))
+                cheapest_journey = min(journeys_set, key=itemgetter(1))
+                cheapest_journeys = filter(lambda x: x[1] == cheapest_journey[1], journeys_set)
+                cheapest_journeys = sorted(cheapest_journeys, key=itemgetter(0))
+                
+                print("-->", starting_date.strftime("%d/%m/%Y"))
+                for cheapest_journey in cheapest_journeys:
+                    print("    {DATE} - {PRICE}".format(
+                        DATE=cheapest_journey[0],
+                        PRICE=cheapest_journey[1],
+                    ))
 
                 starting_date = (starting_date + timedelta(days=1)).replace(hour=0, minute=0)
                 last_journey = None
                 journeys_set = set()
-                print("The next day is:", starting_date)
+                print("\r\n")
                 break
 
             last_journey = journey
